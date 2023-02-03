@@ -1,3 +1,17 @@
+from typing import Set, cast
+from web3.types import (  # noqa: F401
+    RPCEndpoint,
+)
+
+# look at web3/middleware/cache.py for reference
+# RPC methods that will be cached inside _get_eth_simple_cache_middleware
+SIMPLE_CACHE_RPC_WHITELIST = cast(
+    Set[RPCEndpoint],
+    {
+        "eth_chainId",
+    },
+)
+
 ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
 WETH9_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 
@@ -64,6 +78,7 @@ MIN_TICK = -887272
 MAX_TICK = -MIN_TICK
 
 # Source: https://github.com/Uniswap/v3-core/blob/v1.0.0/contracts/UniswapV3Factory.sol#L26-L31
-_tick_spacing = {500: 10, 3_000: 60, 10_000: 200}
+_tick_spacing = {100:1, 500: 10, 3_000: 60, 10_000: 200}
 
-_tick_bitmap_range = {500: (-347, 346), 3_000: (-58, 57), 10_000: (-18, 17)}
+# Derived from (MIN_TICK//tick_spacing) >> 8 and (MAX_TICK//tick_spacing) >> 8
+_tick_bitmap_range = {100:(-3466, 3465), 500: (-347, 346), 3_000: (-58, 57), 10_000: (-18, 17)}

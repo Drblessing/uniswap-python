@@ -2,14 +2,25 @@ import os
 import json
 import math
 import functools
-from typing import Any, Generator, Sequence, Union, List, Tuple
+import lru
+
+from typing import Any, Generator, Sequence, Union, List, Tuple, Type, Dict, cast
 
 from web3 import Web3
 from web3.exceptions import NameNotFound
 from web3.contract import Contract
+from web3.middleware.cache import construct_simple_cache_middleware
+from web3.types import Middleware
 
-from .constants import MIN_TICK, MAX_TICK, _tick_spacing
+from .constants import MIN_TICK, MAX_TICK, _tick_spacing, SIMPLE_CACHE_RPC_WHITELIST
 from .types import AddressLike, Address
+
+
+def _get_eth_simple_cache_middleware() -> Middleware:
+    return construct_simple_cache_middleware(
+        cache_class=cast(Type[Dict[Any, Any]], functools.partial(lru.LRU, 256)),
+        rpc_whitelist=SIMPLE_CACHE_RPC_WHITELIST,
+    )
 
 
 def _str_to_addr(s: Union[AddressLike, str]) -> Address:
@@ -53,7 +64,7 @@ def _load_abi(name: str) -> str:
 @functools.lru_cache()
 def _load_contract(w3: Web3, abi_name: str, address: AddressLike) -> Contract:
     address = Web3.toChecksumAddress(address)
-    return w3.eth.contract(address=address, abi=_load_abi(abi_name))
+    return w3.eth.contract(address=address, abi=_load_abi(abi_name))  # type: ignore
 
 
 def _load_contract_erc20(w3: Web3, address: AddressLike) -> Contract:
